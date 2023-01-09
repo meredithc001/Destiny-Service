@@ -1,10 +1,12 @@
 package DestinyBack;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
@@ -39,5 +41,11 @@ public class DestinyItemController {
     @RequestMapping(value="/item", params = "hash")
     public DestinyItem getItem(@RequestParam long hash) throws IOException {
         return itemHelper.getItem(hash);
+    }
+
+    @GetMapping("/character")
+    @RequestMapping(value="/character")
+    public JSONObject getCharacter(@RequestParam("characterType") int characterType, @RequestParam("memberShipId") String memberShipId) throws URISyntaxException {
+        return itemHelper.getCharacterEquipment(characterType, memberShipId);
     }
 }
