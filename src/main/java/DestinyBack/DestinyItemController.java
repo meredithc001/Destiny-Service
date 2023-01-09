@@ -35,8 +35,9 @@ public class DestinyItemController {
         return itemHelper.getItems(display_name);
     }
 
-    @GetMapping("/item/{hash}")
-    public DestinyItem getItem(@PathVariable long hash) throws IOException {
+    @GetMapping("/item")
+    @RequestMapping(value="/item", params = "hash")
+    public DestinyItem getItem(@RequestParam long hash) throws IOException {
         return itemHelper.getItem(hash);
     }
 }
