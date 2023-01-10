@@ -38,14 +38,10 @@ public class DestinyItemController {
     }
 
     @GetMapping("/item")
+    @CrossOrigin("http://localhost:63343")
     @RequestMapping(value="/item", params = "hash")
     public DestinyItem getItem(@RequestParam long hash) throws IOException {
         return itemHelper.getItem(hash);
     }
 
-    @GetMapping("/character")
-    @RequestMapping(value="/character")
-    public JSONObject getCharacter(@RequestParam("characterType") int characterType, @RequestParam("memberShipId") String memberShipId) throws URISyntaxException {
-        return itemHelper.getCharacterEquipment(characterType, memberShipId);
-    }
 }

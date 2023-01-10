@@ -2,6 +2,7 @@ package DestinyBack;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,10 +29,6 @@ public class ItemHelper {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    RestTemplate restTemplate = new RestTemplate();
-
-    @Value("${bungie.url}")
-    private String bungie_url;
 
     public DestinyItem getItem(long hash) throws JsonProcessingException {
         String jsonString = itemRepository.findDestinyItemByHash(hash).get("data").toString();
@@ -59,10 +56,4 @@ public class ItemHelper {
         return items;
     }
 
-    public JSONObject getCharacterEquipment(int characterType, String membership_id) throws URISyntaxException {
-        URI uri = new URI(bungie_url + characterType + "/"  + "Profile" + "/" +  membership_id + "/?components=205");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic NDI1NzI6U09Nd2NzckV0LjFQNkdFWEJJVFVtZTA5YUV0dGFXRFd3SU9ZQVlqVC12NA==");
-        return restTemplate.getForObject(uri, JSONObject.class);
-    }
 }
