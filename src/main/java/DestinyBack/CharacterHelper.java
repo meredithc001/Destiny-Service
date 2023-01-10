@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 @Component
 public class CharacterHelper {
@@ -58,9 +59,13 @@ public class CharacterHelper {
     }
 
     private InventoryItem[] getDisplayProperties(InventoryItem[] items) throws JsonProcessingException {
-        for(int i = 0; i < items.length; ++i) {
-            DestinyItem item = itemHelper.getItem(items[i].getItemHash());
-            items[i].setDisplayProperties(item.getDisplayProperties());
+        ArrayList<Long> hashes = new ArrayList<Long>();
+        for(int i = 0; i < items.length; i++) {
+            hashes.add(items[i].getItemHash());
+        }
+        DestinyItem[] destinyItems = itemHelper.getItemsbyHash(hashes);
+        for(int i = 0; i < items.length; i++) {
+            items[i].setDisplayProperties(destinyItems[i].getDisplayProperties());
         }
         return items;
     }

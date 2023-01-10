@@ -8,14 +8,18 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public interface ItemRepository extends CrudRepository<DestinyItem, Long> {
-    @Query(value = "SELECT data" +
-            " FROM testing WHERE JSON_EXTRACT(`data`, '$.hash') = :item_hash", nativeQuery = true)
+    @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.hash') = :item_hash", nativeQuery = true)
     @JsonCreator
     JSONObject findDestinyItemByHash(@Param("item_hash") long item_hash);
+
+    @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.hash') IN (:item_hash)", nativeQuery = true)
+    @JsonCreator
+    List<JSONObject> findDestinyItemsByHash(@Param("item_hash") ArrayList<Long> item_hash);
 
     @Query(value = "SELECT data" +
             " FROM testing;", nativeQuery = true)
