@@ -1,8 +1,7 @@
 package DestinyBack;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.json.simple.JSONObject;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.json.JSONObject;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,21 +14,21 @@ import java.util.List;
 public interface ItemRepository extends CrudRepository<DestinyItem, Long> {
     @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.hash') = :item_hash", nativeQuery = true)
     @JsonCreator
-    JSONObject findDestinyItemByHash(@Param("item_hash") long item_hash);
+    String findDestinyItemByHash(@Param("item_hash") long item_hash);
 
     @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.hash') IN (:item_hash)", nativeQuery = true)
     @JsonCreator
-    List<JSONObject> findDestinyItemsByHash(@Param("item_hash") ArrayList<Long> item_hash);
+    List<String> findDestinyItemsByHash(@Param("item_hash") ArrayList<Long> item_hash);
 
     @Query(value = "SELECT data" +
             " FROM testing;", nativeQuery = true)
     @JsonCreator
-    List<JSONObject> findAllDestinyItems();
+    List<String> findAllDestinyItems();
     @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.itemType') = :item_type", nativeQuery = true)
     @JsonCreator
-    List<JSONObject> findAllByItemType(@Param("item_type") int item_type);
+    List<String> findAllByItemType(@Param("item_type") int item_type);
 
     @Query(value = "SELECT data FROM testing WHERE JSON_EXTRACT(`data`, '$.itemTypeDisplayName') = :display_name", nativeQuery = true)
     @JsonCreator
-    List<JSONObject> findAllByDisplayName(@Param("display_name") String display_name);
+    List<String> findAllByDisplayName(@Param("display_name") String display_name);
 }

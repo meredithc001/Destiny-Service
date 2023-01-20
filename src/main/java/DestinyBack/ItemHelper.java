@@ -2,22 +2,11 @@ package DestinyBack;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,39 +21,28 @@ public class ItemHelper {
 
 
     public DestinyItem getItem(long hash) throws JsonProcessingException {
-        String jsonString = itemRepository.findDestinyItemByHash(hash).get("data").toString();
-        return mapper.readValue(jsonString, DestinyItem.class);
+        return mapper.readValue(itemRepository.findDestinyItemByHash(hash), DestinyItem.class);
     }
 
     public DestinyItem[] getItemsbyHash(ArrayList<Long> HashList) throws JsonProcessingException {
-        List<JSONObject> objects = itemRepository.findDestinyItemsByHash(HashList);
-        DestinyItem[] items = new DestinyItem[objects.size()];
-        for(int i = 0; i < objects.size(); i++) {
-            String jsonString = objects.get(i).get("data").toString();
-            items[i]=mapper.readValue(jsonString, DestinyItem.class);
+        List<String> results = itemRepository.findDestinyItemsByHash(HashList);
+        List<JSONObject> objects = new LinkedList<>();
+        for(String item : results){
+            objects.add(new JSONObject(item));
         }
-        return items;
+        return mapper.readValue(objects.toString(), DestinyItem[].class);
     }
 
-    public List<DestinyItem> getItems(int item_type) throws JsonProcessingException {
-        return getListItems(itemRepository.findAllByItemType(item_type));
+    public DestinyItem[] getItems(int item_type) throws JsonProcessingException {
+        return mapper.readValue(itemRepository.findAllByItemType(item_type).toString(), DestinyItem[].class);
     }
 
-    public List<DestinyItem> getItems(String display_name) throws JsonProcessingException {
-        return getListItems(itemRepository.findAllByDisplayName(display_name));
+    public DestinyItem[] getItems(String display_name) throws JsonProcessingException {
+        return mapper.readValue(itemRepository.findAllByDisplayName(display_name).toString(), DestinyItem[].class);
     }
 
-    public List<DestinyItem> getItems() throws JsonProcessingException {
-        return getListItems(itemRepository.findAllDestinyItems());
-    }
-
-    private List<DestinyItem> getListItems(List<JSONObject> jsonObjects) throws JsonProcessingException {
-        List<DestinyItem> items = new LinkedList<>();
-        for(JSONObject entity: jsonObjects) {
-            String jsonString = entity.get("data").toString();
-            items.add(mapper.readValue(jsonString, DestinyItem.class));
-        }
-        return items;
+    public DestinyItem[] getItems() throws JsonProcessingException {
+        return mapper.readValue(itemRepository.findAllDestinyItems().toString(), DestinyItem[].class);
     }
 
 }

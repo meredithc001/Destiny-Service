@@ -2,15 +2,18 @@ package DestinyBack;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.json.simple.JSONObject;
+import org.apache.catalina.connector.Response;
+import org.json.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -24,6 +27,9 @@ public class CharacterHelper {
     @Value("${bungie.auth}")
     private String auth;
 
+    @Value("${bungie.api.key}")
+    private String api_key;
+
     @Autowired
     private ItemHelper itemHelper;
 
@@ -31,31 +37,26 @@ public class CharacterHelper {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    public DestinyCharacter getCharacter(int membershipType, String membership_id, String character_id) throws URISyntaxException, JsonProcessingException {
-        URI uri = new URI(bungie_url + membershipType + "/"  + "Profile" + "/" +  membership_id + "/Character/" + character_id + "/?components=200");
+    private JSONObject getRequest(URI uri) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", auth);
-        JSONObject obj = restTemplate.getForObject(uri, JSONObject.class);
-        return mapper.readValue(obj.toJSONString(), DestinyCharacterResponse.class).getResponse().getCharacter().getData();
+        headers.add("x-api-key", api_key);
+        HttpEntity<String> httpEntity = new HttpEntity<>("", headers);
+        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);
+        return new JSONObject(response.getBody()).getJSONObject("Response");
     }
 
-
-    public DestinyCharacterEquipmentWrapper getCharacterEquipment(int memberShipType, String memberShipId) throws URISyntaxException, JsonProcessingException {
-        URI uri = new URI(bungie_url + memberShipType + "/"  + "Profile" + "/" +  memberShipId + "/?components=205");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", auth);
-        return mapper.readValue(restTemplate.getForObject(uri, JSONObject.class).toJSONString(), DestinyCharacterEquipmentWrapper.class);
+    public DestinyCharacter getCharacter(int membershipType, String membership_id, String character_id) throws URISyntaxException, JsonProcessingException {
+        URI uri = new URI(bungie_url + membershipType + "/"  + "Profile" + "/" +  membership_id + "/Character/" + character_id + "/?components=200");
+        JSONObject obj = getRequest(uri);
+        return mapper.readValue(obj.getJSONObject("character").getJSONObject("data").toString(), DestinyCharacter.class);
     }
 
     public InventoryItem[] getCharacterEquipment(int memberShipType, String memberShipId, String character_id) throws URISyntaxException, JsonProcessingException {
-        CharacterEquipmentList data =getCharacterEquipment(memberShipType, memberShipId).getCharacterEquipmentResponse().getCharacterEquipment().getCharacterEquipmentList();
-        if (character_id.equals("2305843009270276511")) {
-            return getDisplayProperties(data.getCharacter_1().getEquippedInventoryList());
-        } else if (character_id.equals("2305843009270276512")) {
-            return getDisplayProperties(data.getCharacter_2().getEquippedInventoryList());
-        } else {
-            return getDisplayProperties(data.getCharacter_3().getEquippedInventoryList());
-        }
+        URI uri = new URI(bungie_url + memberShipType + "/"  + "Profile" + "/" +  memberShipId + "/?components=205");
+        JSONObject response = getRequest(uri);
+        InventoryItem[] items =  mapper.readValue(response.getJSONObject("characterEquipment").getJSONObject("data").getJSONObject(character_id).getJSONArray("items").toString(), InventoryItem[].class);
+        return getDisplayProperties(items);
     }
 
     private InventoryItem[] getDisplayProperties(InventoryItem[] items) throws JsonProcessingException {
@@ -68,5 +69,12 @@ public class CharacterHelper {
             items[i].setDisplayProperties(destinyItems[i].getDisplayProperties());
         }
         return items;
+    }
+
+    public InventoryItem[] getVaultItems(int memberShipType, String memberShipId) throws URISyntaxException, IOException {
+        URI uri = new URI(bungie_url + memberShipType + "/"  + "Profile" + "/" +  memberShipId + "/?components=102");
+        JSONObject json = getRequest(uri);
+        JSONArray itemArray = json.getJSONObject("profileInventory").getJSONObject("data").getJSONArray("items");
+        return mapper.readValue(itemArray.toString(), InventoryItem[].class);
     }
 }
